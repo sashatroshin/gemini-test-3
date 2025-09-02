@@ -47,15 +47,7 @@ async function loadConfig() {
 }
 
 function initializeBusinessDate() {
-    if (typeof dateFns === 'undefined' || typeof dateFnsTz === 'undefined') {
-        console.error("date-fns or date-fns-tz is not loaded!");
-        alert("Ошибка: Не удалось загрузить библиотеки для работы с датами.");
-        return;
-    }
-
     const { timeZone, hour: cutoffHour } = appState.config.businessDate;
-    const { utcToZonedTime, format } = dateFnsTz;
-    const { subDays } = dateFns;
 
     const nowInZone = utcToZonedTime(new Date(), timeZone);
     let businessDate = nowInZone;
