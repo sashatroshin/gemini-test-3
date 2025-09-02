@@ -1,0 +1,17 @@
+{
+  "webhookUrl": "YOUR_WEBHOOK_URL_HERE",
+  "businessDate": {
+    "hour": 5,
+    "timeZone": "Europe/Moscow"
+  },
+  "expenseCategories": [
+    "Продукты",
+    "Хозтовары",
+    "Ремонт",
+    "Другое"
+  ],
+  "messages": {
+    "surplus": "В кассе излишек. Пересчитайте наличность и проверьте все операции.",
+    "shortage": "В кассе недостача. Проверьте Z-отчет, все чеки и операции."
+  }
+}

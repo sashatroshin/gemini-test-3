@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчёт по смене</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns-tz@2.0.0/dist/date-fns-tz.umd.min.js"></script>
+</head>
+<body>
+
+    <h1>Отчёт по смене</h1>
+    <div class="container">
+        <main class="main-content">
+            <!-- Section for Opening Balance -->
+            <section class="form-section" id="opening-balance">
+                <h2>Размен</h2>
+                <div class="form-group">
+                    <label for="opening-cash">Наличные в кассе на начало дня</label>
+                    <input type="text" id="opening-cash" data-formula="">
+                </div>
+            </section>
+
+            <!-- Section for Expenses -->
+            <section class="form-section" id="expenses">
+                <h2>Расходы</h2>
+                <div id="expenses-list">
+                    <!-- Dynamic expense rows will be added here -->
+                </div>
+                <button id="add-expense">Добавить расход</button>
+            </section>
+
+            <!-- Section for Presto Report -->
+            <section class="form-section" id="presto-report">
+                <h2>Отчёт из Presto</h2>
+                <div class="form-group">
+                    <label for="presto-revenue">Выручка по кассе</label>
+                    <input type="text" id="presto-revenue" data-formula="">
+                </div>
+                <div class="form-group">
+                    <label for="presto-cash">Наличные</label>
+                    <input type="text" id="presto-cash" data-formula="">
+                </div>
+                <div class="form-group">
+                    <label for="presto-card">Безналичные</label>
+                    <input type="text" id="presto-card" data-formula="">
+                </div>
+            </section>
+
+            <!-- Section for Actual Revenue -->
+            <section class="form-section" id="actual-revenue">
+                <h2>Фактическая выручка</h2>
+                <div class="form-group">
+                    <label for="actual-cash">Наличные в кассе на конец дня</label>
+                    <input type="text" id="actual-cash" data-formula="">
+                </div>
+            </section>
+        </main>
+
+        <aside class="summary-panel">
+            <h2>Сводка за смену</h2>
+            <div id="summary-details">
+                <div class="summary-item">
+                    <span>Дата смены:</span>
+                    <span id="summary-business-date">--.--.----</span>
+                </div>
+                <div class="summary-item">
+                    <span>Общая выручка (Presto):</span>
+                    <span id="summary-presto-revenue">0</span>
+                </div>
+                <div class="summary-item">
+                    <span>Всего расходов:</span>
+                    <span id="summary-total-expenses">0</span>
+                </div>
+                <div class="summary-item">
+                    <span>Ожидаемые наличные в кассе:</span>
+                    <span id="summary-expected-cash">0</span>
+                </div>
+                <div class="summary-item">
+                    <span>Фактические наличные в кассе:</span>
+                    <span id="summary-actual-cash">0</span>
+                </div>
+                <div class="summary-item">
+                    <span>Разница:</span>
+                    <span id="summary-discrepancy">0</span>
+                </div>
+            </div>
+            <div id="discrepancy-message-container">
+                <!-- Discrepancy messages will be shown here -->
+            </div>
+        </aside>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
