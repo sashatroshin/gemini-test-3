@@ -1,21 +1,30 @@
+/**
+ * @file Main application logic for the shift report form.
+ * @author Gemini Agent
+ */
+
+// --- GLOBAL STATE ---
+
+/** @type {object} Holds the application configuration from config.json. */
+let appConfig = {};
+/** @type {string} The current calculated business date (YYYY-MM-DD). */
+let currentBusinessDate = '';
+/** @type {number|null} The timer for the webhook sending delay. */
+let webhookTimer = null;
+
+
+// --- INITIALIZATION ---
+
+/**
+ * Main entry point. Fires after the DOM is loaded.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
 });
 
-// --- GLOBAL STATE ---
-let appConfig = {};
-let currentBusinessDate = '';
-let webhookTimer = null;
-
-// --- INITIALIZATION ---
-function initializeApp() {
-    initializeBusinessDate();
-    initializeInputProcessing();
-    initializeExpenseManagement();
-    loadState();
-    updateSummary();
-}
-
+/**
+ * Fetches configuration and initializes the application.
+ */
 async function loadConfig() {
     try {
         const response = await fetch('config.json');
@@ -28,18 +37,47 @@ async function loadConfig() {
     }
 }
 
+/**
+ * Kicks off all initialization functions after config is loaded.
+ */
+function initializeApp() {
+    initializeBusinessDate();
+    initializeInputProcessing();
+    initializeExpenseManagement();
+    loadState();
+    updateSummary();
+}
+
+
 // --- HELPERS ---
+
+/**
+ * Gets the integer value of a form field.
+ * @param {string} id The ID of the input element.
+ * @returns {number} The parsed integer value, or 0 if invalid.
+ */
 function getFieldValue(id) {
     const input = document.getElementById(id);
     return parseInt(input ? input.value : '0', 10) || 0;
 }
 
+/**
+ * Sets the text content of a summary field.
+ * @param {string} id The ID of the span element.
+ * @param {string|number} value The value to display.
+ */
 function setSummaryValue(id, value) {
     const element = document.getElementById(id);
     if (element) element.textContent = value;
 }
 
-// --- BUSINESS DATE & WEBHOOK TIMER ---
+
+// --- CORE LOGIC ---
+
+/**
+ * Calculates the current business date based on the changeover time in the config.
+ * @returns {string} The business date in YYYY-MM-DD format.
+ */
 function getBusinessDate() {
     const { changeTime, timezone } = appConfig.businessDate;
     const [changeHour, changeMinute] = changeTime.split(':').map(Number);
@@ -55,11 +93,17 @@ function getBusinessDate() {
     return `${year}-${month}-${day}`;
 }
 
+/**
+ * Sets the initial business date on the page.
+ */
 function initializeBusinessDate() {
     currentBusinessDate = getBusinessDate();
     setSummaryValue('buisnessdate', currentBusinessDate);
 }
 
+/**
+ * Checks if the business date has changed since the page loaded and reloads if it has.
+ */
 function checkBusinessDate() {
     const newBusinessDate = getBusinessDate();
     if (currentBusinessDate !== newBusinessDate) {
@@ -68,12 +112,20 @@ function checkBusinessDate() {
     }
 }
 
+/**
+ * Resets the 1-minute timer to send the webhook.
+ */
 function resetWebhookTimer() {
     clearTimeout(webhookTimer);
-    webhookTimer = setTimeout(sendWebhook, 60000); // 1 minute
+    webhookTimer = setTimeout(sendWebhook, 60000);
 }
 
-// --- STATE MANAGEMENT ---
+
+// --- STATE MANAGEMENT (LocalStorage) ---
+
+/**
+ * Saves the entire form state to localStorage.
+ */
 function saveState() {
     const state = { fields: {}, expenses: [] };
     const inputIds = [
@@ -99,6 +151,9 @@ function saveState() {
     localStorage.setItem(`shiftReportData_${currentBusinessDate}`, JSON.stringify(state));
 }
 
+/**
+ * Loads the form state from localStorage for the current business date.
+ */
 function loadState() {
     const savedState = localStorage.getItem(`shiftReportData_${currentBusinessDate}`);
     if (!savedState) return;
@@ -127,7 +182,12 @@ function loadState() {
     });
 }
 
-// --- SUMMARY & WEBHOOK ---
+
+// --- UI & EVENT HANDLING ---
+
+/**
+ * The main calculation and UI update function. Called whenever data changes.
+ */
 function updateSummary() {
     checkBusinessDate();
     const razmen = getFieldValue('razmen');
@@ -159,6 +219,11 @@ function updateSummary() {
     resetWebhookTimer();
 }
 
+/**
+ * Displays messages in the summary area based on cash/cashless discrepancies.
+ * @param {number} raznica_nalichnie The cash discrepancy.
+ * @param {number} raznica_beznal The cashless discrepancy.
+ */
 function updateDiscrepancyMessages(raznica_nalichnie, raznica_beznal) {
     const messagesContainer = document.getElementById('messages-container');
     const { messages } = appConfig;
@@ -180,52 +245,10 @@ function updateDiscrepancyMessages(raznica_nalichnie, raznica_beznal) {
     messagesContainer.innerHTML = html;
 }
 
-function getReportData() {
-    const report = {
-        shiftReport: {
-            date: new Date().toISOString().split('T')[0],
-            buisnessdate: currentBusinessDate
-        },
-        fields: {},
-        rashodi: [],
-        status: appConfig.status || 'test'
-    };
-    const inputIds = [
-        'razmen', 'nalichnie_vsego', 'dostavka', 'samovivoz',
-        'presto_nalichnie', 'presto_karti', 'presto_vozvrati', 'terminal_sverka'
-    ];
-    inputIds.forEach(id => {
-        report.fields[id] = document.getElementById(id).value;
-    });
-    document.querySelectorAll('.expense-row').forEach(row => {
-        report.rashodi.push({
-            summa: row.querySelector('input[name="expense_sum"]').value,
-            kategoriya: row.querySelector('select[name="expense_category"]').value,
-            komment: row.querySelector('input[name="expense_comment"]').value
-        });
-    });
-    return report;
-}
-
-async function sendWebhook() {
-    const reportData = getReportData();
-    console.log('Sending webhook with data:', reportData);
-    try {
-        const response = await fetch(appConfig.webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(reportData)
-        });
-        if (!response.ok) {
-            throw new Error(`Webhook failed with status: ${response.status}`);
-        }
-        console.log('Webhook sent successfully!');
-    } catch (error) {
-        console.error('Error sending webhook:', error);
-    }
-}
-
-// --- INPUT PROCESSING ---
+/**
+ * Adds expression evaluation and validation to an input field.
+ * @param {HTMLInputElement} input The input element to process.
+ */
 function addInputProcessing(input) {
     if (!input) return;
     input.addEventListener('focus', (e) => {
@@ -254,6 +277,9 @@ function addInputProcessing(input) {
     });
 }
 
+/**
+ * Initializes all static input fields on the page.
+ */
 function initializeInputProcessing() {
     const inputIds = [
         'razmen', 'presto_nalichnie', 'presto_karti',
@@ -262,7 +288,10 @@ function initializeInputProcessing() {
     inputIds.forEach(id => addInputProcessing(document.getElementById(id)));
 }
 
-// --- EXPENSE MANAGEMENT ---
+/**
+ * Creates a new HTML row for entering an expense.
+ * @returns {HTMLDivElement} The new row element.
+ */
 function createExpenseRow() {
     const row = document.createElement('div');
     row.className = 'grid expense-row';
@@ -286,6 +315,9 @@ function createExpenseRow() {
     return row;
 }
 
+/**
+ * Sets up the "Add Expense" button and handles row deletion.
+ */
 function initializeExpenseManagement() {
     const addExpenseBtn = document.getElementById('add-expense');
     const expensesContainer = document.getElementById('expenses-container');
@@ -300,6 +332,61 @@ function initializeExpenseManagement() {
             updateSummary();
         }
     });
+}
+
+
+// --- WEBHOOK ---
+
+/**
+ * Gathers all form data into a JSON object for the webhook.
+ * @returns {object} The report data object.
+ */
+function getReportData() {
+    const report = {
+        shiftReport: {
+            date: new Date().toISOString().split('T')[0],
+            buisnessdate: currentBusinessDate
+        },
+        fields: {},
+        rashodi: [],
+        status: appConfig.status || 'test'
+    };
+    const inputIds = [
+        'razmen', 'nalichnie_vsego', 'dostavka', 'samovivoz',
+        'presto_nalichnie', 'presto_karti', 'presto_vozvrati', 'terminal_sverka'
+    ];
+    inputIds.forEach(id => {
+        report.fields[id] = document.getElementById(id).value;
+    });
+    document.querySelectorAll('.expense-row').forEach(row => {
+        report.rashodi.push({
+            summa: row.querySelector('input[name="expense_sum"]').value,
+            kategoriya: row.querySelector('select[name="expense_category"]').value,
+            komment: row.querySelector('input[name="expense_comment"]').value
+        });
+    });
+    return report;
+}
+
+/**
+ * Sends the report data to the configured webhook URL.
+ */
+async function sendWebhook() {
+    const reportData = getReportData();
+    console.log('Sending webhook with data:', reportData);
+    try {
+        const response = await fetch(appConfig.webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reportData)
+        });
+        if (!response.ok) {
+            throw new Error(`Webhook failed with status: ${response.status}`);
+        }
+        console.log('Webhook sent successfully!');
+    } catch (error) {
+        console.error('Error sending webhook:', error);
+    }
 }
 
 // --- INITIALIZATION ---
