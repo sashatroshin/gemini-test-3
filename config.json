@@ -1,5 +1,5 @@
 {
-  "webhookUrl": "URL_вашего_вебхука_в_n8n",
+  "webhookUrl": "https://n8n.troshinsasha.ru/webhook/ayiwtrhgwfiyg",
   "businessDate": {
     "changeTime": "09:00",
     "timezone": "Asia/Irkutsk"
