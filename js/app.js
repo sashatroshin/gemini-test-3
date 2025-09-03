@@ -294,20 +294,20 @@ function initializeInputProcessing() {
  */
 function createExpenseRow() {
     const row = document.createElement('div');
-    row.className = 'grid expense-row';
+    row.className = 'grid grid-cols-4 gap-4 mb-4 expense-row';
     row.innerHTML = `
         <div>
-            <input type="text" name="expense_sum" placeholder="Сумма" value="0">
+            <input type="text" name="expense_sum" placeholder="Сумма" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
         </div>
         <div>
-            <select name="expense_category">
+            <select name="expense_category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
                 ${appConfig.expenseCategories.map(category => `<option value="${category}">${category}</option>`).join('')}
             </select>
         </div>
         <div>
-            <input type="text" name="expense_comment" placeholder="Комментарий">
+            <input type="text" name="expense_comment" placeholder="Комментарий" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
         </div>
-        <button class="secondary outline" name="delete_expense">Удалить</button>
+        <button class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" name="delete_expense">Удалить</button>
     `;
     const sumInput = row.querySelector('input[name="expense_sum"]');
     addInputProcessing(sumInput);
